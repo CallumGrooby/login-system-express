@@ -52,29 +52,62 @@ UserRouter.post("/signup", async (req, res) => {
   }
 });
 
-UserRouter.post("/signin", (req, res) => {
-  let { email, password } = req.body;
-  email = email.trim();
-  password = password.trim();
+// UserRouter.post("/signin", (req, res) => {
+//   let { email, password } = req.body;
+//   email = email.trim();
+//   password = password.trim();
 
-  if (!email || !password) {
-    return res.json({ status: "FAILED", message: "Empty input field" });
-  } else {
-    User.find({ email })
-      .then((data) => {
-        if (data.length) {
-          const hashedPassword = data[0].password;
-          bcrypt.compare(password, hashedPassword).then((result) => {
-            if (result) {
-              res.json({ status: "SUCCESS", message: "Sign in sucessful" });
-            } else {
-              res.json({ status: "FAILED", message: "Empty Invalid Password" });
-            }
-          });
-        }
-      })
-      .catch((err) => {
-        res.json({ status: "FAILED", message: "Invalid Credentals" });
-      });
+//   if (!email || !password) {
+//     return res.json({ status: "FAILED", message: "Empty input field" });
+//   } else {
+//     User.find({ email })
+//       .then((data) => {
+//         if (data.length) {
+//           const hashedPassword = data[0].password;
+//           bcrypt.compare(password, hashedPassword).then((result) => {
+//             if (result) {
+//               res.json({ status: "SUCCESS", message: "Sign in sucessful" });
+//             } else {
+//               res.json({ status: "FAILED", message: "Empty Invalid Password" });
+//             }
+//           });
+//         }
+//       })
+//       .catch((err) => {
+//         res.json({ status: "FAILED", message: "Invalid Credentals" });
+//       });
+//   }
+// });
+
+UserRouter.post("/signin", async (req, res) => {
+  try {
+    let { email, password } = req.body;
+    email = email.trim();
+    password = password.trim();
+
+    if (!email || !password) {
+      return res.json({ status: "FAILED", message: "Empty input field" });
+    }
+
+    // 1) Find user
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.json({ status: "FAILED", message: "User not found" });
+    }
+
+    // 2) Compare password
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+      return res.json({ status: "FAILED", message: "Invalid password" });
+    }
+
+    // 3) Success
+    res.json({ status: "SUCCESS", message: "Sign in successful", data: user });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
+      status: "FAILED",
+      message: "An error occurred during sign in",
+    });
   }
 });
