@@ -39,5 +39,5 @@ SESSION_SECRET=your_session_secret
 ```
 Start the application:
 ```bash
-npm start
+npm run dev
 ```
