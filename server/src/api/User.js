@@ -1,6 +1,7 @@
 import express from "express";
 import bcrypt from "bcrypt";
 import { User } from "../models/User.js";
+import jwt from "jsonwebtoken";
 
 export const UserRouter = express.Router();
 
@@ -52,33 +53,6 @@ UserRouter.post("/signup", async (req, res) => {
   }
 });
 
-// UserRouter.post("/signin", (req, res) => {
-//   let { email, password } = req.body;
-//   email = email.trim();
-//   password = password.trim();
-
-//   if (!email || !password) {
-//     return res.json({ status: "FAILED", message: "Empty input field" });
-//   } else {
-//     User.find({ email })
-//       .then((data) => {
-//         if (data.length) {
-//           const hashedPassword = data[0].password;
-//           bcrypt.compare(password, hashedPassword).then((result) => {
-//             if (result) {
-//               res.json({ status: "SUCCESS", message: "Sign in sucessful" });
-//             } else {
-//               res.json({ status: "FAILED", message: "Empty Invalid Password" });
-//             }
-//           });
-//         }
-//       })
-//       .catch((err) => {
-//         res.json({ status: "FAILED", message: "Invalid Credentals" });
-//       });
-//   }
-// });
-
 UserRouter.post("/signin", async (req, res) => {
   try {
     let { email, password } = req.body;
@@ -101,8 +75,16 @@ UserRouter.post("/signin", async (req, res) => {
       return res.json({ status: "FAILED", message: "Invalid password" });
     }
 
+    //3) Create JWT Token
+    const JWT_SECRET = process.env.JWT_SECRET;
+    const token = jwt.sign(
+      { id: user.id, email: user.email, name: user.name },
+      JWT_SECRET,
+      { expiresIn: "1h" }
+    );
+
     // 3) Success
-    res.json({ status: "SUCCESS", message: "Sign in successful", data: user });
+    res.json({ status: "SUCCESS", message: "Sign in successful", data: token });
   } catch (error) {
     console.error(error);
     res.status(500).json({
