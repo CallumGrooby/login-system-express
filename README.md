@@ -34,6 +34,7 @@ Configure MongoDB connection:
 * Create a .env file in the root directory.
 * Add your MongoDB connection string:
 ```bash
+PORT=5000
 MONGO_URI=your_mongodb_connection_string
 SESSION_SECRET=your_session_secret
 ```
